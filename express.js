@@ -193,6 +193,35 @@ app.get('/profile', function (req, res) {
 
 })
 
+// app.get('/settings', function (req, res) {
+//    res.render('settings.ejs');
+
+//    var con = connect();
+   
+//    function delete_account() {
+//       null;
+//    }
+//    let delete_account_button = document.querySelector('#delete-account')
+//    delete_account_button.addEventListener("click", delete_account);
+   
+//    var session = session.req
+//    var username = req.body.username;
+//    var password = req.boddy.password;
+   
+//    var sql = `DELETE FROM users WHERE username='Alfreds Futterkiste';`;
+//    var values = [username, password];
+
+//    con.query(sql, values, (err, result) => {
+//        if (err) {
+//            throw err;
+//        }
+//        console.log('User ', username, ' inserted into database');
+       
+//        res.render('login.ejs');
+
+//    });
+// })
+
 // tail
 var server = app.listen(8081, function () {
    var host = server.address().address
