@@ -1,32 +1,37 @@
-html<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="light.css">
-  <title>Jepp</title>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="icon.ico">
+    <link rel="stylesheet" href="light.css">
+    <link id="active-stylesheet" href="" rel="stylesheet" type="text/css"/>
+    <title>Jepp settings</title>
 </head>
 <body>
-  <h1>Settings</h1> <br>
-  <p>You are logged in as <%= loggedinas %>.</p>
-  <button id="delete-account">Delete account</button>
+    <h1>Settings</h1> <br>
 
-  <!-- <div id="list-div">
-    <h2>List</h2>
-    <ul id="list"></ul>
-    <input id="list-input" type="text">
-    <button id="list-button">Add</button>
-  </div> <br>
+    <div id="theme-switch">
+        <label for="switch-options">Theme </label>
+        <select id="switch-options">
+            <option value="switch-options__light" data-stylesheet="light.css">Light</option>
+            <option value="switch-options__dark" data-stylesheet="dark.css">Dark</option>
+        </select> <br> <br>
 
-  <button id="reset-button">Reset local storage</button> <br> <br> -->
-  <!-- <a id="theme-switch" class="btn"></a> <br> -->
-  <div id="links">
-    <a href="/">Home</a>
-    <a href="about">About</a>
-    <a href="settings">Settings</a>
-    <a href="logout">Logout</a>
-  </div>
-  <script src="client.js"></script>
+        <button id="clear-storage">Clear storage</button> <br> <br>
+    </div>
+
+    <div id="links-settings">
+        <button><a href="delete-account">Delete account</a></button> <br>
+    </div> <br>
+    
+    <div id="links">
+        <a href="/">Home</a>
+        <a href="about">About</a>
+        <a href="settings">Settings</a>
+        <a href="logout">Logout</a>
+    </div>
 </body>
+<script src="theme.js"></script>
 </html>

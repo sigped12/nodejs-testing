@@ -4,13 +4,15 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="styles.css">
-    <title>Jepp Signup</title>
+    <link rel="icon" type="image/x-icon" href="icon.ico">
+    <link rel="stylesheet" href="light.css">
+    <link id="active-stylesheet" href="" rel="stylesheet" type="text/css"/>
+    <title>Jepp signup</title>
 </head>
 <body>
     <h1>Signup</h1>
 
-    <form action="/signup" method="post">
+    <form action="signup" method="post">
         <div class="input-field">
             <input type="text" name="username" id="username" placeholder="Enter Username">
         </div> <br>
@@ -20,14 +22,18 @@
         <div class="select">
             <label for="gender">Gender </label>
             <select name="gender" id="gender">
-              <option value="male">Male</option>
-              <option value="female">Female</option>
-              <option value="other">Other</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="other">Other</option>
             </select>
         </div> <br>
         <input type="submit" value="Submit">
-      </form> <br>
+    </form> <br>
     
-    <a href="/">Login</a>
+    <div id="links">
+        <a href="/">Home</a>
+        <a href="login">Login</a>
+    </div>
 </body>
+<script src="theme.js"></script>
 </html>

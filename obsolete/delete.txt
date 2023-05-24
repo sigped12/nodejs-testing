@@ -1,0 +1,28 @@
+app.get('/delete-account', function (req, res) {
+   res.render('delete-account.ejs');
+})
+app.post('/delete-account', function (req, res) {
+   var con = connect();
+
+   if(req.session.userid){
+      console.log('session active for delete-account')
+      var username = req.session.userid
+      var password = req.body.password;
+      var sql = `DELETE FROM user WHERE username = ? AND password ?`;
+
+      con.query(sql, [username, password], (error, result) => {
+         if (error) {
+            res.status(500).send('Internal Server Error');
+         } else if (result.length === 1) {
+            req.session.destroy();
+            console.log('User ', username, ' deleted from database');
+            res.redirect('/signup');
+         } else {
+            res.redirect('/settings?error=invalid');
+         }
+   });
+   } 
+   else {
+      res.redirect('/');
+   }
+})

@@ -1,0 +1,29 @@
+app.post('/user',(req,res) => {
+   
+   var con = connect();
+
+   var requsername = req.body.username;
+   var reqpassword = req.body.password;
+   
+   var sql = null
+   var values = [username, password];
+
+   con.connect(function(err) {
+      if (err) throw err;
+      con.query(sql, function (err, result, fields) {
+         if (err) throw err;
+         console.log(result);
+      });
+ 
+   });
+
+   console.log(username, password)
+   if(req.body.username == result.username && req.body.password == result.password){
+       session.userid=req.body.username;
+       console.log(req.session)
+       res.render('index.ejs');
+   }
+   else{
+       res.send('Invalid username or password');
+   }
+});

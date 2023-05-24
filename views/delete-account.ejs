@@ -7,24 +7,24 @@
     <link rel="icon" type="image/x-icon" href="icon.ico">
     <link rel="stylesheet" href="light.css">
     <link id="active-stylesheet" href="" rel="stylesheet" type="text/css"/>
-    <title>Jepp login</title>
+    <title>Jepp settings</title>
 </head>
 <body>
-    <h1>Login</h1>
+    <h1>Settings</h1>
 
-    <form action="login" method="post">
-        <div class="input-field">
-            <input type="text" name="username" id="username" placeholder="Enter Username">
-        </div> <br>
+    <h3>Delete account</h3>
+    <form action="delete-account" method="post">
         <div class="input-field">
             <input type="password" name="password" id="password" placeholder="Enter Password">
         </div> <br>
-        <input type="submit" value="Submit">
+        <input type="submit" value="Delete account">
     </form> <br>
     
     <div id="links">
         <a href="/">Home</a>
-        <a href="signup">Signup</a>
+        <a href="about">About</a>
+        <a href="settings">Settings</a>
+        <a href="logout">Logout</a>
     </div>
 </body>
 <script src="theme.js"></script>

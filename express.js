@@ -21,9 +21,13 @@ function connect (){
 });
 }
 
+const nDate = new Date().toLocaleString('nb-no', {
+   timeZone: 'Europe/Oslo'
+ });
+
 app.get('/test', function (req, res) {
 
-   var con= connect();
+   var con = connect();
 
    con.connect(function(err) {
       if (err) throw err;
@@ -44,21 +48,8 @@ app.get('/test', function (req, res) {
    
 })
 
-app.get('/express', function (req, res) {
-   res.send('Request for express');
-})
-
 app.get('/about', function (req, res) {
-   res.sendFile( __dirname + "/" + "about.html" );
-})
-
-app.get('/process_get', function (req, res) {
-   response = {
-      username:req.query.username,
-      password:req.query.password
-   };
-   console.log(response);
-   res.end(JSON.stringify(response));
+   res.render('about.ejs');
 })
 
 // parsing the incoming data
@@ -85,20 +76,13 @@ var session;
 app.get('/', function (req, res) {
      session=req.session;
      if(session.userid){
-      var loggedinas = session.userid;
-         res.render('index.ejs', {
-            userid: session.userid,
-            loggedinas: loggedinas
+         res.render('home.ejs', {
+            userid: session.userid
         });
      } 
      else {
-        res.render('login.ejs', { });
+        res.render('index.ejs', { });
      }
-})
-
-app.get('/createaccount', function (req, res) {
-   res.render('signup.ejs');
- 
 })
  
 app.get('/logout', function (req, res) {
@@ -107,6 +91,9 @@ app.get('/logout', function (req, res) {
  
 })
 
+app.get('/signup', function (req, res) {
+   res.render('signup.ejs');
+})
 app.post('/signup', (req, res) => {
  
    var con = connect();
@@ -114,11 +101,12 @@ app.post('/signup', (req, res) => {
    var username = req.body.username;
    var password = req.body.password;
    var gender = req.body.gender;
-   var date_created = null;
-   var last_login = null;
+   var date_created = new Date();
+   var last_login = new Date();
    
-   var sql = `INSERT INTO user (username, password, gender) VALUES (?, ?, ?)`;
-   var values = [username, password, gender];
+   
+   var sql = `INSERT INTO user (username, password, gender, date_created, last_login) VALUES (?, ?, ?, ?, ?)`;
+   var values = [username, password, gender, date_created, last_login];
 
    con.query(sql, values, (err, result) => {
        if (err) {
@@ -131,41 +119,13 @@ app.post('/signup', (req, res) => {
    });
 });
 
-app.post('/user',(req,res) => {
-   
-   var con = connect();
-
-   var requsername = req.body.username;
-   var reqpassword = req.body.password;
-   
-   var sql = null
-   var values = [username, password];
-
-   con.connect(function(err) {
-      if (err) throw err;
-      con.query(sql, function (err, result, fields) {
-         if (err) throw err;
-         console.log(result);
-      });
- 
-   });
-
-   console.log(username, password)
-   if(req.body.username == result.username && req.body.password == result.password){
-       session.userid=req.body.username;
-       console.log(req.session)
-       res.render('index.ejs');
-   }
-   else{
-       res.send('Invalid username or password');
-   }
+app.get('/login', function (req, res) {
+   res.render('login.ejs');
 })
-
 app.post('/login', function (req, res) {
-
    var con = connect();
 
-   // hent brukernavn og passord fra skjema på login
+   // get username and password from document on login
    var username = req.body.username;
    var password = req.body.password;
 
@@ -176,15 +136,31 @@ app.post('/login', function (req, res) {
        if (error) {
            res.status(500).send('Internal Server Error');
        } else if (result.length === 1) {
-           session=req.session;
-           session.userid=req.body.username; // set session userid til brukernavn
-           res.redirect('/');
-           console.log(username, ' logged in');
-
+         session=req.session;
+           session.userid=req.body.username; // set session userid to username
+           console.log(username, ' logged in ', 'last_login: ', result[0].last_login);
+           res.redirect('/handle-login');
        } else {
-           res.redirect('/login?error=invalid'); // redirect med error beskjed i GET
+           res.redirect('/login?error=invalid'); // redirect with error message in GET
        }
    });
+})
+
+app.get('/handle-login', function (req, res) {
+   var con = connect();
+
+   var username = req.session.userid
+   var last_login = new Date();
+   var sql = `UPDATE user SET last_login = ? WHERE username = ?`;
+
+   con.query(sql, [last_login, username], (error, result) => {
+      if (error) {
+          res.status(500).send('Internal Server Error');
+      } else {
+         console.log(username, ' last_login update: ', last_login);
+         res.redirect('/');
+      }
+  });
 })
 
 app.get('/profile', function (req, res) {
@@ -193,39 +169,90 @@ app.get('/profile', function (req, res) {
 
 })
 
-// app.get('/settings', function (req, res) {
-//    res.render('settings.ejs');
+app.get('/settings', function (req, res) {
+   var con = connect();
 
-//    var con = connect();
-   
-//    function delete_account() {
-//       null;
-//    }
-//    let delete_account_button = document.querySelector('#delete-account')
-//    delete_account_button.addEventListener("click", delete_account);
-   
-//    var session = session.req
-//    var username = req.body.username;
-//    var password = req.boddy.password;
-   
-//    var sql = `DELETE FROM users WHERE username='Alfreds Futterkiste';`;
-//    var values = [username, password];
+   if(req.session.userid){
+      res.render('settings.ejs', {
 
-//    con.query(sql, values, (err, result) => {
-//        if (err) {
-//            throw err;
-//        }
-//        console.log('User ', username, ' inserted into database');
-       
-//        res.render('login.ejs');
+      });
+   } 
+   else {
+      res.redirect('/');
+   }
+})
 
-//    });
-// })
+app.get('/delete-account', function (req, res) {
+   var con = connect();
 
-// tail
-var server = app.listen(8081, function () {
+   // Check if the user is signed in by verifying the session or any authentication mechanism you have in place
+   if (req.session.userid) {
+       var username = req.session.userid;
+
+       // Render a page with a form to enter the password
+       res.render('delete-account.ejs', { username: username });
+   } else {
+       res.redirect('/login'); // Redirect to the login page if the user is not signed in
+   }
+});
+
+// POST request to handle the password verification and delete the account
+app.post('/delete-account', function (req, res) {
+   var con = connect();
+
+   // Check if the user is signed in by verifying the session or any authentication mechanism you have in place
+   if (req.session.userid) {
+       var username = req.session.userid;
+       var password = req.body.password; // Assuming the password is sent in the request body
+
+       // Perform the MySQL query to fetch the user's password from the database
+       var selectSql = 'SELECT password FROM user WHERE username = ?';
+
+       con.query(selectSql, [username], (error, results) => {
+           if (error) {
+               console.log(error);
+               res.status(500).send('Internal Server Error');
+           } else {
+               if (results.length > 0) {
+                  var storedPassword = results[0].password; // Assuming the password is stored in the 'password' column
+
+                  // Compare the entered password with the stored password
+                  if (password === storedPassword) {
+                       // Perform the MySQL query to delete the user account
+                       var deleteSql = 'DELETE FROM user WHERE username = ?';
+
+                       con.query(deleteSql, [username], (error, results) => {
+                           if (error) {
+                               console.log(error);
+                               res.status(500).send('Internal Server Error');
+                           } else {
+                              // Account deletion successful
+                              req.session.destroy(function (error) {
+                                   if (error) {
+                                       console.log(error);
+                                    }
+                                       res.redirect('/home');
+                                 });
+                           }
+                        });
+                  } else {
+                       // Incorrect password
+                       res.status(403).send('Incorrect password');
+                  }
+               } else {
+                  // User not found
+                  res.status(404).send('User not found');
+               }
+          }
+       });
+   } else {
+       res.redirect('/login'); // Redirect to the login page if the user is not signed in
+   }
+});
+
+var server = app.listen(80, function () {
    var host = server.address().address
    var port = server.address().port
    
-   console.log("Example app listening at http://%s:%s", host, port)
+   console.log("App listening at http://%s:%s", host, port)
 })
