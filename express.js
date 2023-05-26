@@ -74,15 +74,13 @@ app.set('view engine', 'ejs');
 var session;
  
 app.get('/', function (req, res) {
-     session=req.session;
-     if(session.userid){
-         res.render('home.ejs', {
-            userid: session.userid
-        });
-     } 
-     else {
-        res.render('index.ejs', { });
-     }
+   if(req.session.userid){
+      res.render('home.ejs', {
+      userid: req.session.userid
+   });
+   } else {
+      res.render('index.ejs', { });
+   }
 })
  
 app.get('/logout', function (req, res) {
@@ -104,7 +102,6 @@ app.post('/signup', (req, res) => {
    var date_created = new Date();
    var last_login = new Date();
    
-   
    var sql = `INSERT INTO user (username, password, gender, date_created, last_login) VALUES (?, ?, ?, ?, ?)`;
    var values = [username, password, gender, date_created, last_login];
 
@@ -122,6 +119,8 @@ app.post('/signup', (req, res) => {
 app.get('/login', function (req, res) {
    res.render('login.ejs');
 })
+
+
 app.post('/login', function (req, res) {
    var con = connect();
 
@@ -133,16 +132,16 @@ app.post('/login', function (req, res) {
    var sql = 'SELECT * FROM user WHERE username = ? AND password = ?';
    
    con.query(sql, [username, password], (error, result) => {
-       if (error) {
+      if (error) {
            res.status(500).send('Internal Server Error');
-       } else if (result.length === 1) {
+      } else if (result.length === 1) {
          session=req.session;
-           session.userid=req.body.username; // set session userid to username
-           console.log(username, ' logged in ', 'last_login: ', result[0].last_login);
-           res.redirect('/handle-login');
-       } else {
-           res.redirect('/login?error=invalid'); // redirect with error message in GET
-       }
+         session.userid=req.body.username; // set session userid to username
+         console.log(username, ' logged in ', 'last_login: ', result[0].last_login);
+         res.redirect('/handle-login');
+      } else {
+         res.redirect('/login?error=wrongpw'); // redirect with error message in GET
+      }
    });
 })
 
@@ -164,9 +163,63 @@ app.get('/handle-login', function (req, res) {
 })
 
 app.get('/profile', function (req, res) {
-   res.render('null', {     
-   });
+   if(req.session.userid){
+      var con = connect();
 
+      var username = req.session.userid;
+      var sql = 'SELECT bio FROM user WHERE username = ?';
+
+      con.query(sql, [username], (err, result) => {
+         if (err) throw err;
+         console.log(result[0].bio);
+         req.session.bio = result[0].bio
+                       
+         res.render('profile.ejs', {
+            userid: req.session.userid,
+            bio: result[0].bio
+       });
+      });
+   } else {
+      res.redirect('/');
+   }
+})
+
+app.get('/profile/', function (req, res) {
+   if(req.session.userid){
+      var con = connect();
+
+      var username = req.session.userid;
+      var sql = 'SELECT bio FROM user WHERE username = ?';
+
+      con.query(sql, [username], (err, result) => {
+         if (err) throw err;
+         req.session.bio = result[0].bio
+                       
+         res.render('profile.ejs', {
+            userid: req.session.userid,
+            bio: result[0].bio
+       });
+      });
+   } else {
+      res.redirect('/');
+   }
+})
+
+app.post('/update-bio', function (req, res) {
+   var con = connect();
+
+   var username = req.session.userid;
+   var bio = req.body.bio;
+   var sql = `UPDATE user SET bio = ? WHERE username = ?`;
+
+   con.query(sql, [bio, username], (error, result) => {
+      if (error) {
+          res.status(500).send('Internal Server Error');
+      } else {
+         console.log(username, ' bio updated: ', bio);
+         res.redirect('/profile');
+      }
+  });
 })
 
 app.get('/settings', function (req, res) {
@@ -202,51 +255,51 @@ app.post('/delete-account', function (req, res) {
 
    // Check if the user is signed in by verifying the session or any authentication mechanism you have in place
    if (req.session.userid) {
-       var username = req.session.userid;
-       var password = req.body.password; // Assuming the password is sent in the request body
+      var username = req.session.userid;
+      var password = req.body.password;
 
-       // Perform the MySQL query to fetch the user's password from the database
-       var selectSql = 'SELECT password FROM user WHERE username = ?';
+      // Perform the MySQL query to fetch the user's password from the database
+      var selectSql = 'SELECT password FROM user WHERE username = ?';
 
-       con.query(selectSql, [username], (error, results) => {
-           if (error) {
-               console.log(error);
-               res.status(500).send('Internal Server Error');
-           } else {
-               if (results.length > 0) {
-                  var storedPassword = results[0].password; // Assuming the password is stored in the 'password' column
+      con.query(selectSql, [username], (error, results) => {
+         if (error) {
+            console.log(error);
+            res.status(500).send('Internal Server Error');
+         } else {
+            if (results.length > 0) {
+               var storedPassword = results[0].password;
 
-                  // Compare the entered password with the stored password
-                  if (password === storedPassword) {
-                       // Perform the MySQL query to delete the user account
-                       var deleteSql = 'DELETE FROM user WHERE username = ?';
+               // Compare the entered password with the stored password
+               if (password === storedPassword) {
+                    // Perform the MySQL query to delete the user account
+                    var deleteSql = 'DELETE FROM user WHERE username = ?';
 
-                       con.query(deleteSql, [username], (error, results) => {
-                           if (error) {
-                               console.log(error);
-                               res.status(500).send('Internal Server Error');
-                           } else {
-                              // Account deletion successful
-                              req.session.destroy(function (error) {
-                                   if (error) {
-                                       console.log(error);
-                                    }
-                                       res.redirect('/home');
-                                 });
-                           }
-                        });
-                  } else {
-                       // Incorrect password
-                       res.status(403).send('Incorrect password');
-                  }
+                    con.query(deleteSql, [username], (error, results) => {
+                        if (error) {
+                            console.log(error);
+                            res.status(500).send('Internal Server Error');
+                        } else {
+                           // Account deletion successful
+                           req.session.destroy(function (error) {
+                              if (error) {
+                                 console.log(error);
+                              }
+                                 res.redirect('/');
+                           });
+                        }
+                     });
                } else {
-                  // User not found
-                  res.status(404).send('User not found');
+                  // Incorrect password
+                  res.status(403).send('Incorrect password');
                }
-          }
-       });
+            } else {
+               // User not found
+               res.status(404).send('User not found');
+            }
+         }
+      });
    } else {
-       res.redirect('/login'); // Redirect to the login page if the user is not signed in
+       res.redirect('/login');
    }
 });
 
