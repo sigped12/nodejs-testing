@@ -22,3 +22,28 @@ clearStorageButton.addEventListener("click", clearStorage);
 function clearStorage() {
     localStorage.clear();
 }
+
+// Check if a theme is stored in the browser's local storage
+const storedTheme = localStorage.getItem('theme');
+if (storedTheme) {
+document.getElementById('switch-options').value = storedTheme;
+}
+    
+// Change the theme and store it in local storage
+document.getElementById('switch-options').addEventListener('change', function() {
+    const selectedTheme = this.value;
+    localStorage.setItem('theme', selectedTheme);
+    applyTheme(selectedTheme);
+});
+    
+// Apply the selected theme by adding/removing CSS classes or loading stylesheets
+function applyTheme(theme) {
+    // Implement the logic to apply the selected theme
+    // For example, you can add or remove CSS classes on the document or load different stylesheets
+    // Here's a simple example that adds/removes a 'dark-theme' class on the body element:
+    if (theme === 'switch-options__dark') {
+        document.body.classList.add('dark-theme');
+    } else {
+        document.body.classList.remove('dark-theme');
+    }
+}

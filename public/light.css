@@ -2,21 +2,3 @@ body {
     background-color: white;
     color: black;
 }
-
-h1 {
-    text-align: center;
-}
-  
-p {
-    font-size: 20px;
-}
-
-a {
-    text-align: center;
-    font-size: 20px;
-}
-
-.switch-text {
-    display: inline;
-    font-size: 16px;
-}
