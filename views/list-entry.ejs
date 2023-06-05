@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="icon.ico">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="light.css">
+    <link id="active-stylesheet" href="" rel="stylesheet" type="text/css"/>
+    <title>Jepp</title>
+</head>
+<body>
+    <h1>List entry</h1>
+
+    <p>Work in progress</p>
+
+    <form action="list-entry" method="post">
+        <div class="input-field">
+            <input type="text" name="title" id="title" placeholder="Title">
+        </div> <br>
+        <div class="select">
+            <label for="type">Type </label>
+            <select name="type" id="type">
+                <option value="movie">Movie</option>
+                <option value="series">Series</option>
+            </select>
+        </div> <br>
+        <div class="select">
+            <label for="style">Style </label>
+            <select name="type" id="type">
+                <option value="movie">Live action</option>
+                <option value="movie">Animation</option>
+                <option value="series">Computer animation</option>
+                <option value="series">Cartoon</option>
+                <option value="series">Anime</option>
+                <option value="movie">Puppetry</option>
+            </select>
+        </div> <br>
+        <input type="submit" value="Submit">
+    </form> <br>
+
+    <div id="links">
+        <a href="/">Home</a>
+        <a href="about">About</a>
+        <a href="settings">Settings</a>
+        <a href="logout">Logout</a>
+    </div>
+</body>
+<script src="theme.js"></script>
+</html>

@@ -15,7 +15,7 @@ function connect (){
    return mysql.createConnection({
    host:'sigurd-mysql.mysql.database.azure.com', 
    user:'sigurd', password:'94verkTOYiskuFFen', 
-   database:'mediadb', 
+   database:'jeppdb', 
    port:3306, 
    ssl:{ca:fs.readFileSync('DigiCertGlobalRootCA.crt.pem')}
    });
@@ -65,9 +65,11 @@ app.get('/test', function (req, res) {
 })
 
 app.get('/', function (req, res) {
-   if (req.query.msg) { console.log(req.query.error) }
+   if (req.query.msg) { console.log('req.query.msg ', req.query.msg) }
    if (req.query.msg === 'deletedacc') { 
       message = 'Account was deleted'
+   } if (req.query.msg === 'logout') { 
+      message = 'Logged out of account'
    } else {message = null}
    
    if(req.session.userid){
@@ -81,11 +83,11 @@ app.get('/', function (req, res) {
 
 app.get('/logout', function (req, res) {
    req.session.destroy();
-   res.redirect('/');
+   res.redirect('/?msg=logout');
 })
 
 app.get('/signup', function (req, res) {
-   if (req.query.error) { console.log(req.query.error) }
+   if (req.query.error) { console.log('req.query.error ', req.query.error) }
    if (req.query.error === 'exists') { 
       message = 'User already exists' 
    } else {message = null}
@@ -109,16 +111,22 @@ app.post('/signup', (req, res) => {
       if (error) {
          res.status(500).send('Internal Server Error');
       } else if (result.length != 0) {
-         res.redirect('/signup?error=exists'); // redirect with error message in GET
+         res.redirect('/signup?error=exists'); // redirect with error message
       } else {
          // insert new user into database
          var sql = 'INSERT INTO user (username, password, gender, date_created, last_login) VALUES (?, ?, ?, ?, ?)';
          var values = [username, password, gender, date_created, last_login];
          
          con.query(sql, values, (err, result) => {
-            if (err) {
-               throw err;
-            }
+            if (err) throw err;
+            var visibility = 'private';
+            // set defaults in settings table
+            var sql = 'INSERT INTO settings (username, visibility) VALUES (?, ?)';
+            con.query(sql, [username, visibility], (err, result) => {
+               if (err) throw err;
+               console.log(username, ' settings set')
+            });
+
             console.log('User ', username, ' inserted into database');
             res.redirect('/login?msg=createdacc');
          });
@@ -127,7 +135,7 @@ app.post('/signup', (req, res) => {
 })
 
 app.get('/login', function (req, res) {
-   if (req.query.error) { console.log(req.query.error) }
+   if (req.query.error) { console.log('req.query.error ', req.query.error) }
    if (req.query.error === 'wronginfo') { 
       message = 'Wrong username or password' 
    } else if (req.query.msg === 'createdacc') {
@@ -155,7 +163,7 @@ app.post('/login', function (req, res) {
          console.log(username, ' logged in ', 'last_login: ', result[0].last_login);
          res.redirect('/handle-login');
       } else {
-         res.redirect('/login?error=wronginfo'); // redirect with error message in GET
+         res.redirect('/login?error=wronginfo'); // redirect with error message
       }
    });
 })
@@ -177,74 +185,57 @@ app.get('/handle-login', function (req, res) {
    });
 })
 
-app.get('/profile', function (req, res) {
-   if(req.session.userid){
-      var con = connect();
-
-      var username = req.session.userid;
-      var sql = 'SELECT bio FROM user WHERE username = ?';
-
-      con.query(sql, [username], (err, result) => {
-         if (err) throw err;
-         req.session.bio = result[0].bio
-                       
-         res.render('profile.ejs', {
-            userid: req.session.userid,
-            bio: result[0].bio
-       });
-      });
-   } else {
-      res.redirect('/');
-   }
-})
-
-app.get('/profile/', function (req, res) {
-   if(req.session.userid){
-      var con = connect();
-
-      var username = req.session.userid;
-      var sql = 'SELECT bio FROM user WHERE username = ?';
-
-      con.query(sql, [username], (err, result) => {
-         if (err) throw err;
-         req.session.bio = result[0].bio
-                       
-         res.render('profile.ejs', {
-            userid: req.session.userid,
-            bio: result[0].bio
-       });
-      });
-   } else {
-      res.redirect('/');
-   }
-})
-
-app.post('/update-bio', function (req, res) {
-   var con = connect();
-
-   var username = req.session.userid;
-   var bio = req.body.bio;
-   var sql = 'UPDATE user SET bio = ? WHERE username = ?';
-
-   con.query(sql, [bio, username], (error, result) => {
-      if (error) {
-          res.status(500).send('Internal Server Error');
-      } else {
-         console.log(username, ' bio updated: ', bio);
-         res.redirect('/profile');
-      }
-   });
-})
-
 app.get('/settings', function (req, res) {
+   if(req.session.userid){
+      var con = connect();
+
+      var username = req.session.userid;
+      var sql = 'SELECT visibility FROM settings WHERE username = ?';
+      con.query(sql, [username], (err, result) => {
+         if (err) throw err;
+         req.session.accvis = result[0].visibility
+
+         if (result[0].visibility === 'private') {
+            accvisis = 'private';
+            accvisnot = 'public';
+         } else if (result[0].visibility === 'public') {
+            accvisis = 'public';
+            accvisnot = 'private';
+         } else {
+            var accvisis = null;
+            var accvisnot = null;
+         }
+
+         res.render('settings.ejs', {
+            accvisis: accvisis,
+            accvisnot: accvisnot
+         });
+      });
+   } else {
+      res.redirect('/');
+   }
+})
+
+app.post('/account-visibility', function (req, res) {
    var con = connect();
 
    if(req.session.userid){
-      res.render('settings.ejs', {
-
+      if (req.session.accvis === 'private') {
+         accvisset = 'public';
+      } else if (req.session.accvis === 'public') {
+         accvisset = 'private';
+      }
+      var visibility = accvisset;
+      var username = req.session.userid;
+      var sql = 'UPDATE settings SET visibility = ? WHERE username = ?';
+      con.query(sql, [visibility, username], (err, result) => {
+         if (err) throw err;
+         else {
+            console.log(username, ' updated account visibility: ', visibility);
+            res.redirect('/settings');
+         }
       });
-   } 
-   else {
+   } else {
       res.redirect('/');
    }
 })
@@ -252,7 +243,7 @@ app.get('/settings', function (req, res) {
 app.get('/delete-account', function (req, res) {
    var con = connect();
 
-   // Check if the user is signed in by verifying the session or any authentication mechanism you have in place
+   // Check if the user is signed in by verifying the session
    if (req.session.userid) {
        var username = req.session.userid;
 
@@ -267,7 +258,7 @@ app.get('/delete-account', function (req, res) {
 app.post('/delete-account', function (req, res) {
    var con = connect();
 
-   // Check if the user is signed in by verifying the session or any authentication mechanism you have in place
+   // Check if the user is signed in by verifying the session
    if (req.session.userid) {
       var username = req.session.userid;
       var password = req.body.password;
@@ -316,6 +307,64 @@ app.post('/delete-account', function (req, res) {
        res.redirect('/login');
    }
 })
+
+app.get('/user', function (req, res) {
+   if(req.session.userid){
+      var con = connect();
+
+      var username = req.session.userid;
+      var sql = 'SELECT bio FROM user WHERE username = ?';
+
+      con.query(sql, [username], (err, result) => {
+         if (err) throw err;
+         req.session.bio = result[0].bio
+                       
+         res.render('profile.ejs', {
+            userid: req.session.userid,
+            bio: result[0].bio
+       });
+      });
+   } else {
+      res.redirect('/');
+   }
+})
+
+app.post('/update-bio', function (req, res) {
+   var con = connect();
+
+   var username = req.session.userid;
+   var bio = req.body.bio;
+   var sql = 'UPDATE user SET bio = ? WHERE username = ?';
+
+   con.query(sql, [bio, username], (error, result) => {
+      if (error) {
+          res.status(500).send('Internal Server Error');
+      } else {
+         console.log(username, ' updated bio: ', bio);
+         res.redirect('/profile');
+      }
+   });
+})
+
+app.get('/user/:username', function (req, res) {
+   res.render('user.ejs');
+})
+
+app.get('/list/:id', function (req, res) {
+   res.render('list.ejs');
+})
+
+app.get('list/:action', function(req, res) {
+   console.log(req.params.action);
+   // if (req.query.error) { console.log('req.query.error ', req.query.error) }
+   // if (req.query.error === 'wronginfo') { 
+   //    message = 'Wrong username or password' 
+   // } else if (req.query.msg === 'createdacc') {
+   //    message = 'Account was created';
+   // } else {message = null}
+
+   res.render('list-create.ejs', { message: message });
+});
 
 app.get('/about', function (req, res) {
    res.render('about.ejs');

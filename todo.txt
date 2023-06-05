@@ -1,4 +1,2 @@
-error på feil login
-    brukte req.query og lagde også det samme på signup hvis en bruker allerede fins
-    
 profiler som kan nås av alle
+lister til brukere

@@ -11,11 +11,16 @@
     <title>Jepp</title>
 </head>
 <body>
-    <h1>Jepp</h1> <br>
+    <h1>Create list</h1> <br>
 
-    <a href="user">Profile</a>
-    <p>You are logged in as <%= userid %>.</p>
-    <p id="visit-text"></p>
+    <p>Work in progress</p>
+
+    <form action="list-create" method="post">
+        <div class="input-field">
+            <input type="text" name="name" id="name" placeholder="Enter List Name">
+        </div> <br>
+        <input type="submit" value="Create list">
+    </form> <br>
 
     <div id="links">
         <a href="/">Home</a>
@@ -24,6 +29,5 @@
         <a href="logout">Logout</a>
     </div>
 </body>
-<script src="home.js"></script>
 <script src="theme.js"></script>
 </html>
