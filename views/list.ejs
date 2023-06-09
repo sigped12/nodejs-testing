@@ -4,21 +4,36 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/x-icon" href="icon.ico">
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="light.css">
+    <link rel="icon" type="image/x-icon" href="/icon.ico">
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/light.css">
     <link id="active-stylesheet" href="" rel="stylesheet" type="text/css"/>
-    <title>Jepp</title>
+    <title>Jepp list <%= id %></title>
 </head>
 <body>
-    <h1>Jepp</h1> <br>
+    <div id="list-information">
+        <h1>Jepp list <%= id %></h1> <br>
+        <h2><%= name %></h2>
+        <a href="/user/<%= creator %>"><%= creator %></a>
+        <p><%= description %></p>
+        <p class="status">Created: <%= date_created %></p>
+        <p class="status">Updated: <%= date_updated %></p>
+    </div> <br>
+    
+    <div id="list-entries">
+        <% data.forEach(function(d) { %>
+            <li>
+              <p>Unfinished</p>
+            </li>
+          <% }); %>
+    </div> <br>
 
     <div id="links">
         <a href="/">Home</a>
-        <a href="about">About</a>
-        <a href="settings">Settings</a>
-        <a href="logout">Logout</a>
+        <a href="/about">About</a>
+        <a href="/settings">Settings</a>
+        <a href="/logout">Logout</a>
     </div>
 </body>
-<script src="theme.js"></script>
+<script src="/theme.js"></script>
 </html>

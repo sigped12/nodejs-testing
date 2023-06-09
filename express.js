@@ -65,7 +65,7 @@ app.get('/test', function (req, res) {
 })
 
 app.get('/', function (req, res) {
-   if (req.query.msg) { console.log('req.query.msg ', req.query.msg) }
+   if (req.query.msg) { console.log('/ req.query.msg ', req.query.msg) }
    if (req.query.msg === 'deletedacc') { 
       message = 'Account was deleted'
    } if (req.query.msg === 'logout') { 
@@ -87,7 +87,7 @@ app.get('/logout', function (req, res) {
 })
 
 app.get('/signup', function (req, res) {
-   if (req.query.error) { console.log('req.query.error ', req.query.error) }
+   if (req.query.error) { console.log('/signup req.query.error ', req.query.error) }
    if (req.query.error === 'exists') { 
       message = 'User already exists' 
    } else {message = null}
@@ -135,7 +135,7 @@ app.post('/signup', (req, res) => {
 })
 
 app.get('/login', function (req, res) {
-   if (req.query.error) { console.log('req.query.error ', req.query.error) }
+   if (req.query.error) { console.log('/login req.query.error ', req.query.error) }
    if (req.query.error === 'wronginfo') { 
       message = 'Wrong username or password' 
    } else if (req.query.msg === 'createdacc') {
@@ -276,6 +276,17 @@ app.post('/delete-account', function (req, res) {
 
                // Compare the entered password with the stored password
                if (password === storedPassword) {
+                     // Delete settings
+                     var deleteSql2 = 'DELETE FROM settings WHERE username = ?';
+                     con.query(deleteSql2, [username], (error, results) => {
+                        if (error) {
+                            console.log(error);
+                            res.status(500).send('Internal Server Error');
+                        } else {
+                           console.log(username, ' settings deleted')
+                        }
+                     });
+
                     // Perform the MySQL query to delete the user account
                     var deleteSql = 'DELETE FROM user WHERE username = ?';
 
@@ -333,7 +344,7 @@ app.post('/update-bio', function (req, res) {
    var con = connect();
 
    var username = req.session.userid;
-   var bio = req.body.bio;
+   var bio = req.body.newbio;
    var sql = 'UPDATE user SET bio = ? WHERE username = ?';
 
    con.query(sql, [bio, username], (error, result) => {
@@ -341,30 +352,160 @@ app.post('/update-bio', function (req, res) {
           res.status(500).send('Internal Server Error');
       } else {
          console.log(username, ' updated bio: ', bio);
-         res.redirect('/profile');
+         res.redirect('/user');
       }
    });
 })
 
 app.get('/user/:username', function (req, res) {
-   res.render('user.ejs');
+   if(req.session.userid){
+      var con = connect();
+
+      var username = req.params.username;
+      console.log('req.params.username ', username)
+
+      // check if the users profile is public or private
+      var sqlCheck = 'SELECT visibility FROM settings WHERE username = ?';
+      con.query(sqlCheck, [username], (err, result) => {
+         if (err) throw err;
+         if (result[0].visibility === 'private') {
+            res.render('user.ejs', {
+               message: 'Profile is private',
+               userid: username,
+               bio: null
+            });
+         } else if (result[0].visibility === 'public') {
+            var sql = 'SELECT bio FROM user WHERE username = ?';
+            con.query(sql, [username], (error, result) => {
+               if (error) {
+                  res.status(500).send('Internal Server Error');
+               } else if (result.length === 1) {
+                  var bio = result[0].bio
+                  console.log(req.session.userid, ' opened ', username, ' profile');
+                  res.render('user.ejs', {
+                     message: null,
+                     userid: username,
+                     bio: bio
+                  });
+               } else {
+                  res.redirect('/user/?error=wrong'); // redirect with error message
+               }
+            });
+         }
+      });
+   } else {
+      res.redirect('/');
+   }
+})
+
+// "Cannot GET" when attempted to access?
+app.get('user/:username/lists', function (req, res) {
+   if(req.session.userid){
+      var con = connect();
+
+      var creator = req.params.username;
+      var sql = 'SELECT * FROM list WHERE creator = ?';
+      con.query(sql, [creator], (error, result) => {
+         res.render('lists-others.ejs', {data: result, username: creator});
+      });
+   } else {
+      res.redirect('/');
+   }
+})
+
+app.get('/users', function(req, res) {
+   if(req.session.userid){
+      var con = connect();
+      var sql = 'SELECT * FROM user';
+      con.query(sql, (error, result) => {
+         res.render('users.ejs', {data: result});
+      });
+   } else {
+      res.redirect('/');
+   }
 })
 
 app.get('/list/:id', function (req, res) {
-   res.render('list.ejs');
+   if(req.session.userid){
+      var con = connect();
+
+      var id = req.params.id
+
+      var sql2 = 'SELECT * FROM list_entry WHERE list = ?';
+      con.query(sql2, [id], (error, result) => {
+         var data = result;
+         var sql = 'SELECT * FROM list WHERE id = ?';
+         con.query(sql, [id], (error, result) => {
+            res.render('list.ejs', {
+               data: data,
+               id: result[0].id,
+               creator: result[0].creator,
+               name: result[0].name,
+               description: result[0].description,
+               date_created: result[0].date_created,
+               date_updated: result[0].date_updated
+            });
+         });
+      });
+
+      
+   } else {
+      res.redirect('/');
+   }
 })
 
-app.get('list/:action', function(req, res) {
-   console.log(req.params.action);
-   // if (req.query.error) { console.log('req.query.error ', req.query.error) }
-   // if (req.query.error === 'wronginfo') { 
-   //    message = 'Wrong username or password' 
-   // } else if (req.query.msg === 'createdacc') {
-   //    message = 'Account was created';
-   // } else {message = null}
+app.get('/lists', function(req, res) {
+   if(req.session.userid){
+      var con = connect();
+      var creator = req.session.userid;
+      var sql = 'SELECT * FROM list';
+      con.query(sql, (error, result) => {
+         res.render('lists-all.ejs', {data: result});
+      });
+   } else {
+      res.redirect('/');
+   }
+})
 
-   res.render('list-create.ejs', { message: message });
-});
+app.get('/my-lists', function(req, res) {
+   if(req.session.userid){
+      var con = connect();
+      if (req.query.action) { console.log('/my-lists req.query.action ', req.query.action) }
+      if (req.query.action === 'create') { 
+         res.render('list-create.ejs', {}); 
+      } else {
+         message = null;
+         var creator = req.session.userid;
+         var sql = 'SELECT * FROM list WHERE creator = ?';
+         con.query(sql, [creator], (error, result) => {
+            res.render('lists-my.ejs', {data: result});
+         });
+      }
+   } else {
+      res.redirect('/');
+   }
+})
+
+app.post('/list-create', function (req, res) {
+   var con = connect();
+
+   var creator = req.session.userid;
+   var name = req.body.name;
+   var description = req.body.description;
+   var date_created = new Date();
+   var date_updated = new Date();
+   var sql = 'INSERT INTO list (creator, name, description, date_created, date_updated) VALUES (?, ?, ?, ?, ?)';
+   var values = [creator, name, description, date_created, date_updated];
+
+   con.query(sql, values, (error, result) => {
+      if (error) {
+          res.status(500).send('Internal Server Error');
+      } else {
+         console.log(creator, ' created new list: ', name);
+         res.redirect('/my-lists');
+      }
+   });
+})
 
 app.get('/about', function (req, res) {
    res.render('about.ejs');

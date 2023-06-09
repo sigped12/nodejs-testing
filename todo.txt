@@ -1,2 +1,2 @@
-profiler som kan nås av alle
 lister til brukere
+styling fungerer ikke på req.params sider

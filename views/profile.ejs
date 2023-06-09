@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/x-icon" href="icon.ico">
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="light.css">
+    <link rel="icon" type="image/x-icon" href="/icon.ico">
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/light.css">
     <link id="active-stylesheet" href="" rel="stylesheet" type="text/css"/>
     <title>Jepp profile</title>
 </head>
@@ -15,22 +15,20 @@
 
     <h2><%= userid %></h2>
     <p><%= bio %></p>
-    <form action="update-bio" method="post">
+    <form action="/update-bio" method="post">
         <div class="input-field">
-            <textarea type="text" name="bio" id="bio" placeholder="Enter a bio"></textarea>
+            <textarea type="text" name="newbio" id="newbio" placeholder="Enter a bio"></textarea>
         </div> <br>
         <input type="submit" value="Update bio">
     </form> <br>
 
-    <a href="list/create">Create list</a> <br>
-
     <br>
     <div id="links">
         <a href="/">Home</a>
-        <a href="about">About</a>
-        <a href="settings">Settings</a>
-        <a href="logout">Logout</a>
+        <a href="/about">About</a>
+        <a href="/settings">Settings</a>
+        <a href="/logout">Logout</a>
     </div>
 </body>
-<script src="theme.js"></script>
+<script src="/theme.js"></script>
 </html>

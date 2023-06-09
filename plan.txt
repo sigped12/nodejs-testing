@@ -1,0 +1,16 @@
+Planen videre ville vært:
+- Fullføre innlegg til lister
+- Bruke apien til the movie database til å søke etter spesifisert medie og få informasjonen som skal i list_entry kolonnene
+- Fullføre fremvisning av lister i list.ejs
+- Legge til oppdatering av blant annet liste navn og liste innlegg
+- Utvide innstillingene
+- Legge til venner og følging
+- Legge til kommentering på brukere og lister
+- Styling
+
+Forklaring av databasen:
+En 'friend_request' gis en 'id', 'requester' med hvem som spør, og en 'requested' med hvem som blir spurt
+Blir den akseptert blir et 'friendship' table laget med de to brukerne og datoen i seg
+En 'user' får inn informasjon fra signup skjemaet og har et 'settings' table med innstillinger i seg
+En 'comment' har en 'where' som er hvor kommentaren er, enten på en bruker eller en liste, og får en 'where_id' utifra hvor mange 'comments' det er i 'where' sitt table
+En 'list_entry' er koblet til en 'list' og hver 'list_entry' får en 'list_id' utifra hvor mange 'entries' det er i 'list'

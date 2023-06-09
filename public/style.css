@@ -16,6 +16,10 @@ a {
     font-size: 16px;
 }
 
-#bio {
+#new-bio {
     width: 30%;
+}
+
+.status {
+    font-size: small;
 }
